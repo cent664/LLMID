@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invariant Features in Language Models</title>
+  <meta name="description" content="Geometric characterization of semantic invariance in LLMs, and zero-shot model attribution via contrastive sensitivity decomposition." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #101820;
+      --ink-soft: #243040;
+      --paper: #e9eef2;
+      --paper-2: #dce4ea;
+      --muted: #5a6a78;
+      --line: rgba(16, 24, 32, 0.12);
+      --accent: #0e7c86;
+      --accent-deep: #0a5f67;
+      --signal: #c45c26;
+      --shadow: 0 24px 60px rgba(16, 24, 32, 0.14);
+      --radius: 2px;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Sora", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      line-height: 1.55;
+      font-weight: 400;
+      overflow-x: hidden;
+    }
+
+    /* Atmosphere */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(900px 520px at 8% -8%, rgba(14, 124, 134, 0.18), transparent 58%),
+        radial-gradient(720px 460px at 100% 0%, rgba(16, 24, 32, 0.08), transparent 55%),
+        linear-gradient(165deg, #f2f6f8 0%, #e4ebf0 42%, #d5dfe6 100%);
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.4;
+      background-image:
+        linear-gradient(rgba(16, 24, 32, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 24, 32, 0.035) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: radial-gradient(ellipse at 40% 0%, black 15%, transparent 70%);
+    }
+
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    a:hover { color: var(--accent-deep); }
+
+    .wrap {
+      width: min(100% - 2.5rem, var(--max));
+      margin-inline: auto;
+    }
+
+    /* Nav */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.15rem 0 0.5rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.04em;
+    }
+    .nav-brand {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 650;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1.1rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nav-links a:hover { color: var(--ink); }
+
+    /* Hero */
+    .hero {
+      padding: 2.75rem 0 2.25rem;
+      display: grid;
+      gap: 2rem;
+      position: relative;
+    }
+    .hero-copy { max-width: 38rem; }
+    .kicker {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      animation: rise 0.8s ease both;
+    }
+    .hero h1 {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 700;
+      font-size: clamp(2.35rem, 5.4vw, 4rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 1.1rem;
+      animation: rise 0.8s ease both 0.08s;
+    }
+    .hero-lead {
+      font-size: clamp(1.02rem, 1.6vw, 1.18rem);
+      color: var(--ink-soft);
+      max-width: 34rem;
+      margin-bottom: 1.75rem;
+      font-weight: 300;
+      animation: rise 0.8s ease both 0.14s;
+    }
+    .authors {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      animation: rise 0.8s ease both 0.2s;
+    }
+    .authors strong { color: var(--ink-soft); font-weight: 500; }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      animation: rise 0.8s ease both 0.26s;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.72rem 1.15rem;
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      font-weight: 550;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .btn-primary:hover { background: var(--accent); color: #fff; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(14, 124, 134, 0.07);
+    }
+
+    .hero-figure {
+      margin-top: 0.5rem;
+      animation: rise 0.9s ease both 0.32s;
+    }
+    .hero-figure img {
+      width: 100%;
+      display: block;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: #fff;
+    }
+    .fig-cap {
+      margin-top: 0.7rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      max-width: 52rem;
+    }
+    .fig-cap strong {
+      color: var(--ink-soft);
+      font-weight: 550;
+    }
+
+    @keyframes rise {
+      from { transform: translateY(14px); filter: blur(2px); }
+      to { transform: translateY(0); filter: none; }
+    }
+
+    /* Sections */
+    section {
+      padding: 4.25rem 0;
+      border-top: 1px solid var(--line);
+    }
+    .sec-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.85rem;
+    }
+    h2 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(1.7rem, 3vw, 2.35rem);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 0.9rem;
+      max-width: 22ch;
+    }
+    .sec-lead {
+      color: var(--muted);
+      max-width: 40rem;
+      margin-bottom: 2rem;
+      font-size: 1.02rem;
+      font-weight: 300;
+    }
+
+    .abstract {
+      font-size: 1.05rem;
+      color: var(--ink-soft);
+      max-width: 46rem;
+      font-weight: 300;
+    }
+    .abstract p + p { margin-top: 1rem; }
+
+    /* Contributions */
+    .contrib-list {
+      list-style: none;
+      display: grid;
+      gap: 1.25rem;
+      counter-reset: c;
+    }
+    .contrib-list li {
+      counter-increment: c;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: start;
+      padding: 1.1rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .contrib-list li::before {
+      content: counter(c, decimal-leading-zero);
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--accent);
+      font-weight: 650;
+      line-height: 1.2;
+    }
+    .contrib-list h3 {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.2rem;
+      font-weight: 650;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.01em;
+    }
+    .contrib-list p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      max-width: 40rem;
+    }
+
+    /* Figure blocks */
+    .figure-block {
+      margin: 2.5rem 0 0;
+    }
+    .figure-block img {
+      width: 100%;
+      display: block;
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .figure-pair {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    @media (min-width: 860px) {
+      .figure-pair { grid-template-columns: 1fr 1fr; }
+      .figure-pair .span-2 { grid-column: 1 / -1; }
+    }
+
+    /* Results strip */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0 2.5rem;
+    }
+    @media (max-width: 720px) {
+      .stat-row { grid-template-columns: 1fr; }
+    }
+    .stat {
+      padding: 1.25rem 1.1rem 1.15rem;
+      border-top: 2px solid var(--accent);
+      background: rgba(255, 255, 255, 0.35);
+    }
+    .stat-val {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.85rem;
+      font-weight: 650;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+    .stat-label {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    /* Models */
+    .model-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+    .pill {
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.38rem 0.7rem;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      background: rgba(255,255,255,0.4);
+      border-radius: 999px;
+    }
+
+    /* Bib / footer */
+    .bib {
+      position: relative;
+      background: var(--ink);
+      color: #d7e0db;
+      padding: 1.35rem 1.25rem;
+      border-radius: var(--radius);
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.7rem;
+      right: 0.7rem;
+      font-family: "Sora", sans-serif;
+      font-size: 0.72rem;
+      font-weight: 550;
+      padding: 0.35rem 0.65rem;
+      border: 1px solid rgba(215, 224, 219, 0.25);
+      background: rgba(255,255,255,0.06);
+      color: #d7e0db;
+      cursor: pointer;
+      border-radius: var(--radius);
+    }
+    .copy-btn:hover { background: rgba(14, 124, 134, 0.45); }
+    .bib-wrap { position: relative; margin-top: 1.5rem; }
+
+    footer {
+      padding: 2.5rem 0 3.5rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    footer .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    /* Reveal on scroll — visible by default if JS/IO unavailable */
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+    .js .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .js .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+      .js .reveal {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <script>document.documentElement.classList.add("js");</script>
+  <header class="wrap">
+    <nav class="nav" aria-label="Primary">
+      <a class="nav-brand" href="#">Invariant Features</a>
+      <ul class="nav-links">
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#idea">Idea</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#cite">Cite</a></li>
+        <li><a href="https://arxiv.org/abs/2605.06458" target="_blank" rel="noopener">arXiv</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap" aria-label="Paper title">
+      <div class="hero-copy">
+        <p class="kicker">arXiv:2605.06458 · cs.LG</p>
+        <h1>Invariant Features in Language Models</h1>
+        <p class="hero-lead">
+          A geometric view of semantic invariance: paraphrases move along nuisance directions,
+          while meaning lives in stable latent subspaces—used for analysis and zero-shot model attribution.
+        </p>
+        <p class="authors">
+          <strong>Agnibh Dasgupta</strong><sup>*</sup>,
+          <strong>Abdullah Tanvir</strong><sup>*</sup>,
+          <strong>Xin Zhong</strong><br />
+          University of Nebraska Omaha
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://arxiv.org/pdf/2605.06458" target="_blank" rel="noopener">Read the PDF</a>
+          <a class="btn btn-ghost" href="https://arxiv.org/abs/2605.06458" target="_blank" rel="noopener">View on arXiv</a>
+          <a class="btn btn-ghost" href="#cite">BibTeX</a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="figures/1_PIA.png" alt="Overview: paraphrases converge to invariant zones, local geometric decomposition, and model attribution pipeline" />
+        <figcaption class="fig-cap">
+          <strong>Figure 1.</strong> Paraphrases converge to compact invariant zones; local geometry separates nuisance and semantic directions; those zones support model attribution.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="abstract" class="wrap">
+      <p class="sec-label reveal">Abstract</p>
+      <h2 class="reveal">Semantic stability as local geometry</h2>
+      <div class="abstract reveal">
+        <p>
+          Language models are robust to paraphrasing, suggesting that meaning is encoded in stable
+          internal structure. We propose a local geometric framework in which semantically equivalent
+          inputs occupy structured regions of latent space: paraphrastic variation travels along
+          nuisance directions, while semantic identity is preserved in invariant subspaces.
+        </p>
+        <p>
+          We contribute (1) a geometric characterization of invariant latent features,
+          (2) a contrastive subspace discovery method that separates semantic-changing from
+          semantic-preserving variation, and (3) an application of invariant representations to
+          zero-shot model attribution.
+        </p>
+      </div>
+    </section>
+
+    <section id="idea" class="wrap">
+      <p class="sec-label reveal">Framework</p>
+      <h2 class="reveal">Three moves</h2>
+      <p class="sec-lead reveal">
+        From a manifold hypothesis for representations, to a data-driven eigenproblem, to fingerprints that stay useful under adaptation.
+      </p>
+      <ol class="contrib-list">
+        <li class="reveal">
+          <div>
+            <h3>Geometric definition</h3>
+            <p>Invariant features are stable under paraphrasing yet discriminative across meanings—locally, a projection that ignores nuisance motion on the representation manifold.</p>
+          </div>
+        </li>
+        <li class="reveal">
+          <div>
+            <h3>Contrastive sensitivity decomposition</h3>
+            <p>Estimate covariances of representation changes under SP and SC edits, then solve <em>S<sub>sc</sub>v = λ S<sub>sp</sub>v</em>. Large-λ directions form the invariant subspace.</p>
+          </div>
+        </li>
+        <li class="reveal">
+          <div>
+            <h3>Zero-shot attribution</h3>
+            <p>Aggregate layer-wise invariant projections into model-specific zone signatures and match by similarity—attribution as validation of geometric individuality.</p>
+          </div>
+        </li>
+      </ol>
+
+      <div class="figure-pair">
+        <figure class="figure-block reveal">
+          <img src="figures/2_Define.png" alt="Local tangent space decomposition into semantic and nuisance directions" />
+          <figcaption class="fig-cap"><strong>Figure 2.</strong> Local tangent-space view: nuisance vs. semantic directions; invariant features via projection <em>P</em>.</figcaption>
+        </figure>
+        <figure class="figure-block reveal">
+          <img src="figures/3_Attribution.png" alt="Zero-shot model attribution via invariant zone similarity matching" />
+          <figcaption class="fig-cap"><strong>Figure 3.</strong> Attribution by matching invariant-zone signatures across reference models.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="results" class="wrap">
+      <p class="sec-label reveal">Results</p>
+      <h2 class="reveal">What the geometry predicts</h2>
+      <p class="sec-lead reveal">
+        Across nine models, invariant structure strengthens in mid-to-late layers; interventions show causal semantic selectivity; invariant projections sharpen model separability.
+      </p>
+
+      <div class="stat-row reveal">
+        <div class="stat">
+          <div class="stat-val">~0.01–0.02</div>
+          <div class="stat-label">Nuisance projection energy <em>E<sub>nuis</sub></em> — semantic displacement mostly outside nuisance directions</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">KL<sub>SP</sub> ≪ KL<sub>SC</sub></div>
+          <div class="stat-label">Invariant-component swaps: paraphrases barely move outputs; meaning changes do</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">~90–96%</div>
+          <div class="stat-label">Zero-shot attribution accuracy, stable under fine-tuning and distillation</div>
+        </div>
+      </div>
+
+      <figure class="figure-block reveal">
+        <img src="figures/profiles_einstein.png" alt="Top-32 eigenvalue profiles across layers showing growth of invariant directions with depth" />
+        <figcaption class="fig-cap"><strong>Layer profiles.</strong> Leading generalized eigenvalues grow with depth; invariant zones concentrate in mid-to-late layers.</figcaption>
+      </figure>
+
+      <figure class="figure-block reveal">
+        <img src="figures/grid_inv_sc_sp_k32_group5.png" alt="Invariant swap KL divergence for SP vs SC across nine models" />
+        <figcaption class="fig-cap"><strong>Causal interventions.</strong> Swapping the invariant component: SC interventions raise next-token KL far more than SP paraphrases, across model families.</figcaption>
+      </figure>
+
+      <figure class="figure-block reveal">
+        <img src="figures/tsne_comparison_k32.png" alt="t-SNE comparing full representation space vs invariant subspace model separability" />
+        <figcaption class="fig-cap"><strong>Model signatures.</strong> Projecting into the invariant subspace separates models more cleanly than a same-rank projection of the full space.</figcaption>
+      </figure>
+
+      <div class="reveal" style="margin-top: 2.5rem;">
+        <p class="sec-label">Models evaluated</p>
+        <div class="model-cloud">
+          <span class="pill">Mistral-Instruct 7B</span>
+          <span class="pill">Llama-3-Instruct 8B</span>
+          <span class="pill">Gemma-IT 7B</span>
+          <span class="pill">Qwen2.5-Instruct 7B</span>
+          <span class="pill">GLM-4-Chat 9B</span>
+          <span class="pill">DeepSeek-MoE 16B</span>
+          <span class="pill">InternLM2-Chat 7B</span>
+          <span class="pill">Phi-4-Mini 4B</span>
+          <span class="pill">Falcon3-Instruct 7B</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery" class="wrap">
+      <p class="sec-label reveal">More figures</p>
+      <h2 class="reveal">Additional views</h2>
+      <p class="sec-lead reveal">Intervention grids and ablations from the paper’s experimental suite.</p>
+      <div class="figure-pair">
+        <figure class="figure-block reveal">
+          <img src="figures/grid_nuis_sc_sp_k32_group5.png" alt="Nuisance swap intervention results across models" />
+          <figcaption class="fig-cap"><strong>Nuisance swap.</strong> Complementary interventions show residual entanglement in the nuisance complement.</figcaption>
+        </figure>
+        <figure class="figure-block reveal">
+          <img src="figures/grid_inv_k_comparison.png" alt="Invariant intervention sensitivity to subspace rank k" />
+          <figcaption class="fig-cap"><strong>Sensitivity to <em>k</em>.</strong> Invariant intervention behavior across subspace ranks.</figcaption>
+        </figure>
+        <figure class="figure-block reveal span-2">
+          <img src="figures/grid_nuis_k_comparison.png" alt="Nuisance intervention sensitivity to subspace rank k" />
+          <figcaption class="fig-cap"><strong>Nuisance × <em>k</em>.</strong> Parallel ablation for the complementary subspace.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="cite" class="wrap">
+      <p class="sec-label reveal">Citation</p>
+      <h2 class="reveal">Cite this work</h2>
+      <p class="sec-lead reveal">Preprint on arXiv. Equal contribution marked with * in the author list.</p>
+      <div class="bib-wrap reveal">
+        <button class="copy-btn" type="button" id="copyBib" aria-label="Copy BibTeX">Copy</button>
+        <pre class="bib" id="bibtex">@article{dasgupta2026invariant,
+  title   = {Invariant Features in Language Models: Geometric Characterization and Model Attribution},
+  author  = {Dasgupta, Agnibh and Tanvir, Abdullah and Zhong, Xin},
+  journal = {arXiv preprint arXiv:2605.06458},
+  year    = {2026}
+}</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="row">
+      <p>Department of Computer Science · University of Nebraska Omaha</p>
+      <p><a href="https://arxiv.org/abs/2605.06458">arxiv.org/abs/2605.06458</a></p>
+    </div>
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("visible");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+    );
+    reveals.forEach((el) => io.observe(el));
+
+    const btn = document.getElementById("copyBib");
+    const bib = document.getElementById("bibtex");
+    btn?.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(bib.textContent.trim());
+        btn.textContent = "Copied";
+        setTimeout(() => { btn.textContent = "Copy"; }, 1600);
+      } catch {
+        btn.textContent = "Select & copy";
+      }
+    });
+  </script>
+</body>
+</html>
