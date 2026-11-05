@@ -146,6 +146,17 @@
       animation: rise 0.8s ease both 0.14s;
     }
     .authors strong { color: var(--ink-soft); font-weight: 500; }
+    .authors a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+    .authors a:hover {
+      color: var(--accent);
+      border-bottom-color: rgba(14, 124, 134, 0.45);
+    }
+    .authors a strong { color: inherit; }
     .author-note {
       font-size: 0.8rem;
       color: var(--muted);
@@ -757,7 +768,7 @@
         <li><a href="#cite">Cite</a></li>
         <!-- TODO_AUTHOR Paper: <li><a class="ext" href="TODO_AUTHOR">Paper</a></li> -->
         <li><a class="ext" href="https://arxiv.org/abs/2605.06458" target="_blank" rel="noopener">arXiv</a></li>
-        <!-- TODO_AUTHOR Code: <li><a class="ext" href="TODO_AUTHOR">Code</a></li> -->
+        <li><a class="ext" href="https://github.com/XinZhong-AI/InvariantFeaturesLanguageModels" target="_blank" rel="noopener">Code</a></li>
       </ul>
     </nav>
 
@@ -768,9 +779,9 @@
         <h1>Invariant Features in Language Models: Geometric Characterization and Model Attribution</h1>
 
         <p class="authors">
-          <strong>Agnibh Dasgupta</strong>*,
-          <strong>Abdullah All Tanvir</strong>*,
-          <strong>Xin Zhong</strong>†
+          <a href="https://cent664.github.io/" target="_blank" rel="noopener"><strong>Agnibh Dasgupta</strong></a>*,
+          <a href="https://scholar.google.com/citations?user=UtEMZK0AAAAJ&amp;hl=en" target="_blank" rel="noopener"><strong>Abdullah All Tanvir</strong></a>*,
+          <a href="https://sites.google.com/view/xin-zhong" target="_blank" rel="noopener"><strong>Xin Zhong</strong></a>†
         </p>
         <p class="author-note">* Equal contribution. † Corresponding author.</p>
         <p class="affiliation">Department of Computer Science, University of Nebraska Omaha.</p>
@@ -778,7 +789,7 @@
         <div class="cta-row">
           <!-- TODO_AUTHOR Paper button: <a class="btn btn-primary" href="TODO_AUTHOR">Paper</a> -->
           <a class="btn btn-primary" href="https://arxiv.org/abs/2605.06458" target="_blank" rel="noopener">arXiv</a>
-          <!-- TODO_AUTHOR Code: <a class="btn btn-ghost" href="TODO_AUTHOR">Code</a> -->
+          <a class="btn btn-ghost" href="https://github.com/XinZhong-AI/InvariantFeaturesLanguageModels" target="_blank" rel="noopener">Code</a>
           <!-- TODO_AUTHOR Data: <a class="btn btn-ghost" href="TODO_AUTHOR">Data</a> -->
           <!-- TODO_AUTHOR Poster: <a class="btn btn-ghost" href="TODO_AUTHOR">Poster</a> -->
           <!-- TODO_AUTHOR Slides: <a class="btn btn-ghost" href="TODO_AUTHOR">Slides</a> -->
@@ -1142,7 +1153,7 @@
       <div class="links">
         <!-- TODO_AUTHOR Paper footer link -->
         <a href="https://arxiv.org/abs/2605.06458" target="_blank" rel="noopener">arXiv</a>
-        <!-- TODO_AUTHOR Code footer link -->
+        <a href="https://github.com/XinZhong-AI/InvariantFeaturesLanguageModels" target="_blank" rel="noopener">Code</a>
       </div>
     </div>
   </footer>
