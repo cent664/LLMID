@@ -13,11 +13,15 @@ Department of Computer Science, University of Nebraska Omaha
 
 https://cent664.github.io/LLMID/
 
-GitHub Pages is built from the [`site/`](site/) folder (via GitHub Actions).
+GitHub Pages is served from the [`docs/`](docs/) folder on `main` (branch deploy).
 
 ## Paper
 
 - arXiv: https://arxiv.org/abs/2605.06458
+
+## Code
+
+- https://github.com/XinZhong-AI/InvariantFeaturesLanguageModels
 
 ## About
 
@@ -25,6 +29,4 @@ This page presents a local geometric view of semantic invariance in language mod
 
 ## Repository contents
 
-- `site/` — static project page and figures (GitHub Pages source)
-- `poster/` — editable NeurIPS poster (LaTeX)
-- `latex_src/` — paper LaTeX sources (if present)
+- `docs/` — static project page and figures (GitHub Pages source)
