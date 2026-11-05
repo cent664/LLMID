@@ -1,3 +1,21 @@
+# Data / notebooks (not part of the project page)
 invariant_prompts.csv
 invariance_outputs_nb/
 .ipynb_checkpoints/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+poster/*.pdf
+
+# Large camera-ready bundles (keep local)
+LLMID_NeurIPS2026_Camera_Ready.pdf
+LLMID_NeurIPS2026_Camera_Ready.zip

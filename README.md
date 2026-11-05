@@ -13,6 +13,8 @@ Department of Computer Science, University of Nebraska Omaha
 
 https://cent664.github.io/LLMID/
 
+GitHub Pages is built from the [`site/`](site/) folder (via GitHub Actions).
+
 ## Paper
 
 - arXiv: https://arxiv.org/abs/2605.06458
@@ -23,5 +25,6 @@ This page presents a local geometric view of semantic invariance in language mod
 
 ## Repository contents
 
-- `index.html` — static project page (GitHub Pages)
-- `figures/` — images used by the page
+- `site/` — static project page and figures (GitHub Pages source)
+- `poster/` — editable NeurIPS poster (LaTeX)
+- `latex_src/` — paper LaTeX sources (if present)

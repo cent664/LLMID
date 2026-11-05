@@ -1,0 +1,551 @@
+\subsection{Evaluation Setup}
+
+\paragraph{Dataset Construction.}
+We construct a controlled dataset designed to isolate semantic invariance from surface-form variation under a within–across perturbation framework. The dataset consists of 210 prompts organized into 10 thematic categories spanning diverse semantic domains, including Cats, France, Python, Photosynthesis, Democracy, Einstein, Climate Change, Calculus, Meditation, and Bread, as summarized in Table~\ref{tab:dataset_category}. Each group defines a single concept unit anchored by one query, yielding 21 sentences per group (1 anchor, 10 semantic-preserving variants, and 10 semantic-changing variants). The dataset is balanced across SP and SC perturbations and constructed under matched syntactic conditions, ensuring that differences in representation space are attributable to semantic variation rather than confounding factors such as length or grammatical complexity. While modest in scale, this design is sufficient for our setting, as invariant feature analysis is inherently local: each group probes a single semantic neighborhood and is used to identify its corresponding invariant zone.
+
+For each anchor query, we generate semantically preserving (SP) variants through controlled paraphrasing that maintains propositional content while varying lexical choice and syntactic form. These perturbations approximate local motion along nuisance directions in representation space (Section~\ref{sec: define}). 
+Semantically changing (SC) variants are constructed by modifying key semantic components while preserving sentence structure and length, ensuring that representation changes are driven by meaning rather than superficial cues. We consider two regimes of semantic change. In the \emph{easy SC} setting, substitutions are semantically close to the original concept, inducing subtle meaning shifts. In the \emph{hard SC} setting, substitutions introduce clearly distinct entities or concepts, producing larger semantic displacement. This design allows us to probe invariant structure under both fine-grained and coarse semantic perturbations.
+
+For the anchor query \emph{``What is the official language of France?''}, an SP variant may read \emph{``Which language holds official status in France?''}, which preserves meaning while altering phrasing. An easy SC variant may substitute a key word or phrase, e.g., \emph{``What is the national currency of France?''}, where the syntactic structure remains very similar. A hard SC variant is drawn from a completely different semantic domain, e.g., \emph{``What is the longest river in South America?''}, which shares no topical overlap with the anchor. Additional examples are provided in Appendix~\ref{app:expanded_data}.
+
+
+\begin{table}[h]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c|ccc}
+\hline
+Model 
+& Group 1 
+& Group 4 
+& Group 6 \\
+\hline
+
+Mistral-7B 
+& 0.0189 & 0.0213 & 0.0198 \\
+
+Llama-3-8B 
+& 0.0127 & 0.0141 & 0.0135 \\
+
+Qwen2.5-7B
+& 0.0158 & 0.0172 & 0.0164 \\
+
+Gemma-7B
+& 0.0169 & 0.0184 & 0.0176 \\
+
+Phi-4-mini
+& 0.0215 & 0.0231 & 0.0223 \\
+
+GLM-4-9B
+& 0.0112 & 0.0126 & 0.0119 \\
+
+DeepSeek-MoE
+& 0.0105 & 0.0118 & 0.0112 \\
+
+InternLM2-7B
+& 0.0121 & 0.0134 & 0.0128 \\
+
+Falcon3-7B
+& 0.0116 & 0.0129 & 0.0123 \\
+
+\hline
+\end{tabular}
+\caption{Nuisance energy ($E_{\mathrm{nuis}}$) across models and semantic groups. Lower values indicate better suppression of nuisance components.}
+\label{tab:energy}
+\end{table}
+
+\begin{table}[h]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c|ccc|ccc|ccc}
+\hline
+\multirow{2}{*}{Model} 
+& \multicolumn{3}{c|}{Group 1}
+& \multicolumn{3}{c|}{Group 2}
+& \multicolumn{3}{c}{Group 3} \\
+
+& B & FT & D
+& B & FT & D
+& B & FT & D \\
+\hline
+
+Mistral-7B 
+& 93.2 & 91.4 & 89.8 
+& 92.7 & 91.0 & 89.4 
+& 93.5 & 91.8 & 90.2 \\
+
+Llama-3-8B 
+& 94.1 & 92.5 & 90.9 
+& 93.8 & 92.1 & 90.5 
+& 94.4 & 92.9 & 91.3 \\
+
+Gemma-7B 
+& 92.8 & 90.9 & 89.2 
+& 92.3 & 90.5 & 88.8 
+& 93.0 & 91.2 & 89.6 \\
+
+Qwen2.5-7B
+& 93.6 & 91.8 & 90.1 
+& 93.1 & 91.3 & 89.7 
+& 93.9 & 92.0 & 90.5 \\
+
+Phi-4-mini
+& 89.6 & 87.8 & 86.1 
+& 89.2 & 87.4 & 85.8 
+& 90.1 & 88.2 & 86.5 \\
+
+GLM-4-9B
+& 95.2 & 93.6 & 91.9
+& 94.8 & 93.1 & 91.5
+& 95.6 & 94.0 & 92.3 \\
+
+DeepSeek-MoE
+& 95.8 & 94.2 & 92.6
+& 95.3 & 93.7 & 92.0
+& 96.1 & 94.5 & 92.9 \\
+
+InternLM2-7B
+& 94.9 & 93.3 & 91.7
+& 94.5 & 92.9 & 91.3
+& 95.2 & 93.6 & 91.9 \\
+
+Falcon3-7B
+& 95.5 & 93.9 & 92.2
+& 95.0 & 93.4 & 91.8
+& 95.8 & 94.2 & 92.5 \\
+
+\hline
+\end{tabular}
+\caption{Model-wise attribution accuracy (\%) across Base (B), Fine-tuned (FT), and Distilled (D) settings for three representative groups.}
+\label{tab:model_wise_attribution}
+\end{table}
+
+
+
+
+\begin{wraptable}{r}{0.35\textwidth}
+\vspace{-1.25em}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c|ccc}
+\hline
+Model 
+& G1 
+& G4 
+& G6 \\
+\hline
+
+Mistral-7B 
+& 0.0189 & 0.0213 & 0.0198 \\
+
+Llama-3-8B 
+& 0.0127 & 0.0141 & 0.0135 \\
+
+Qwen2.5-7B
+& 0.0158 & 0.0172 & 0.0164 \\
+
+Gemma-7B
+& 0.0169 & 0.0184 & 0.0176 \\
+
+Phi-4-mini
+& 0.0215 & 0.0231 & 0.0223 \\
+
+GLM-4-9B
+& 0.0112 & 0.0126 & 0.0119 \\
+
+DeepSeek-MoE
+& 0.0105 & 0.0118 & 0.0112 \\
+
+InternLM2-7B
+& 0.0121 & 0.0134 & 0.0128 \\
+
+Falcon3-7B
+& 0.0116 & 0.0129 & 0.0123 \\
+
+\hline
+\end{tabular}
+\caption{Nuisance projection energy $E_{\mathrm{nuis}}$ across models and groups. Low values indicate that semantic displacement lies largely outside the nuisance subspace.}
+\label{tab:energy}
+\vspace{-1.5em}
+\end{wraptable}
+
+
+
+\section{All Swap Results Across Models and Subspace Dimensions}
+\label{app:all_groups}
+\ad{Proof read please}
+This section presents a comprehensive evaluation of invariant and nuisance component swaps across all nine models and all ten concept groups, for subspace dimensions $k \in \{1, 10, 32\}$. As in the main paper, the intervention replaces either the invariant or nuisance component of an anchor representation with that of a donor drawn from the SC or SC set, and the effect is measured by the KL divergence between the original and intervened next-token output distributions. Each figure is arranged as a $3\times3$ grid with one subplot per model. Within each subplot, solid lines correspond to SC donor swaps at each value of $k$, and the dotted line corresponds to the SP donor swap. Results are averaged across all ten concept groups to provide a stable aggregate view of each model's behavior.
+
+
+
+\paragraph{Interpretation.}
+For invariant swaps (Figure~\ref{fig:inv_k_comparison}), the SC curves increase steadily with depth across all models and all values of $k$, showing that injecting semantically mismatched invariant features induces a growing deviation in the output distribution. The SP curves remain near zero for the majority of models, indicating that substituting the invariant component with semantically equivalent content generally does not perturb model predictions. The divergence between SC and SP conditions becomes most pronounced in mid-to-late layers, coinciding with the invariant zones identified in Section~\ref{sec: localize}. Early layers exhibit limited separation, consistent with their role in encoding surface-form and syntactic information prior to semantic abstraction.
+
+For nuisance swaps (Figure~\ref{fig:nuis_k_comparison}), both SC and SP curves increase at comparable rates with no consistent separation across layers or architectures, corroborating the diagnostic analysis in Appendix~\ref{app:nuisance_swap} and confirming that the nuisance subspace does not selectively encode semantic content. Together, these results support two complementary conclusions that hold consistently across all models, groups, and values of $k$. First, the invariant subspace is causally relevant: interventions on this subspace directly affect model outputs in a manner that grows with layer depth. Second, the effect is semantically selective: only semantically inconsistent substitutions produce significant output shifts, while nuisance swaps affect outputs regardless of donor semantics, demonstrating that the two components play distinct and complementary roles. The consistency of these patterns across all three values of $k$ is discussed further in the following paragraph.
+
+
+
+\paragraph{Insensitivity to Subspace Dimension $k$.}
+We evaluate the sensitivity of our results to the choice of subspace dimension $k$ and observe consistent behavior for $k \in \{1, 10, 32\}$ across all experiments, as evidenced by the close overlap of the three SC curves in each subplot of Figures~\ref{fig:inv_k_comparison} and~\ref{fig:nuis_k_comparison}. This insensitivity is desirable and aligns with both the empirical structure of the data and the theoretical formulation.
+
+First, it suggests that invariant structure is concentrated in a low-dimensional subspace: the leading generalized eigenvectors already capture the dominant semantic directions, and increasing $k$ primarily adds weaker components with diminishing contribution. This is consistent with the eigenvalue spectrum reported in Section~\ref{sec: localize}, where a small number of directions exhibit significantly larger eigenvalues, indicating that semantic invariance is inherently low-rank.
+
+Second, from a theoretical perspective, the framework requires only that a subspace exists that separates semantic-preserving and semantic-changing variation; it does not depend on a precise choice of dimensionality. As long as the selected subspace captures the dominant invariant directions, downstream behavior should remain stable.
+
+Finally, robustness to $k$ improves practical reliability: it indicates that the identified invariant zones and downstream analyses are not sensitive to hyperparameter tuning, and that the geometric structure is a stable property of the representations rather than an artifact of a particular subspace dimension choice.
+
+\paragraph{Model-Level Variation.}
+\ad{NEW ADDITION: Talks about jump is KL for Phi. Include or no?}
+While the overall pattern is consistent across architectures, Phi-4-Mini exhibits a minor deviation under invariant swaps, with a slight elevation in the SP curve at early-to-mid layers that is not observed to the same degree in other models. This may tentatively be attributed to its smaller parameter count relative to the rest of the evaluation suite — at 4B parameters, it is the most compact model evaluated — suggesting that semantic abstraction may be less sharply localized across depth in smaller models, with early layers potentially encoding a broader mixture of semantic and surface-form information. This observation does not affect the overall conclusions, as the SC–SP separation remains present and the qualitative pattern is consistent with the other models. We note this as a tentative observation that warrants further investigation across a broader range of model scales.
+
+
+
+
+%%%Energy details:
+For nuisance energy evaluation, we compute semantic displacement between all ordered semantic group pairs \((g,h)\), where \(g \neq h\). Given \(N\) semantic groups, this results in \(N(N-1)\) pairwise comparisons. In our experiments, we use \(N=10\) semantic groups, yielding 90 ordered semantic displacement pairs. Nuisance energy is evaluated independently at every transformer layer, including the embedding layer and all subsequent transformer blocks.
+
+For all experiments, the nuisance subspace dimensionality is fixed to \(k=16\). Hidden representations are extracted from the final token embedding of each layer and converted to floating-point representations prior to covariance estimation. Covariance matrices are constructed from centered displacement vectors \((z-z_{\text{orig}})\), thereby removing mean offsets before subspace decomposition. During nuisance energy computation, semantic displacement vectors are not additionally normalized prior to projection; instead, normalization is implicitly incorporated through the energy ratio formulation, which divides projected energy by the total displacement energy.
+
+Across all evaluated models, the proposed method consistently exhibits extremely small nuisance projection energy with low variance across layers and semantic groups, indicating stable semantic--nuisance separation behavior throughout the transformer hierarchy. In contrast, variance-based decomposition methods exhibit substantially larger nuisance projections and higher variability, suggesting weaker disentanglement of semantic and nuisance components.
+
+
+
+% \begin{wrapfigure}{r}{0.3\textwidth}
+%     \vspace{-1.5em}
+%     \centering
+%     \includegraphics[width=1.0\linewidth]{figures/column_inv_sc_sp_k32_group5.png}
+%     \vspace{-3.0em}
+%     % \caption{Per-layer KL divergence between the original and intervened next-token output distributions for invariant component swaps across all nine models ($k=32$, $\alpha=1.0$), arranged as a $3\times3$ grid with one subplot per model. Each subplot shows two curves: orange (solid) for swaps using a semantically different SC donor, and blue (dotted) for swaps using a paraphrase SP donor. The SC curve rises consistently with depth while the SP curve remains stable, indicating that the invariant subspace selectively encodes semantic content.}
+%     \caption{Per-layer KL divergence under invariant component swaps for three representative models ($k=32$, $\alpha=1.0$). Orange (SC) increases with depth while blue (SP) remains near zero, indicating that the invariant subspace selectively encodes semantic content.}
+%     \label{fig:invariance_kl}
+%     \vspace{-2.25em}
+% \end{wrapfigure}
+
+We evaluate whether the invariant subspace identified in Section~\ref{sec: find} causally encodes semantic content by performing representation-level interventions. Rather than relying on correlational analysis, this experiment directly perturbs the invariant component of the representation and measures the resulting change in model outputs.
+
+\vspace{-0.8em}
+\paragraph{Experimental Setup.}
+Given the layer-wise decomposition $z = z_{\mathrm{inv}} + z_{\mathrm{nuis}}$ obtained from Eq.~\ref{eq: decompose_z_inv}, we construct interventions by replacing the invariant component of an anchor input with that of a donor input while keeping the nuisance component fixed. In practice, interventions are implemented at the token level. We use the final-token hidden state $h_\ell^{(T)}(x)$ (which directly determines the next-token prediction in causal language models) and set $z_\ell(x) = h_\ell^{(T)}(x)$, so that
+\(
+h_\ell^{(T)}(x) = h_{\mathrm{inv}} + h_{\mathrm{nuis}}.
+\)
+For an anchor hidden state $h^{(a)}$ and a donor hidden state $h^{(d)}$, the intervened state is defined as
+\(
+h^{\mathrm{int}} = h^{(a)} + \alpha \big(h_{\mathrm{inv}}^{(d)} - h_{\mathrm{inv}}^{(a)}\big),
+\)
+which is then fed forward through the remaining layers. This formulation ensures that subspace discovery and intervention operate on the same underlying representation.
+
+Donor inputs are drawn from either the semantic-preserving (SP) or semantic-changing (SC) sets within the same group. The modified representation is injected at layer $\ell$, and the model processes it through the remaining layers to produce output logits. 
+The effect of the intervention is measured by the KL divergence between the next-token distributions produced by the original and intervened forward passes, 
+\(
+\mathrm{KL}(\ell) = D_{\mathrm{KL}}\!\left(p_{\mathrm{base}} \,\|\, p_{\mathrm{int}}\right).
+\) 
+Under the geometric hypothesis, replacing the invariant component with that of an SC donor introduces a semantic inconsistency and should produce a large output shift, whereas replacing it with that of an SP donor preserves semantic content and should result in a small change. The contrast between these two conditions isolates the causal role of the invariant subspace in encoding semantic information.
+
+\vspace{-0.8em}
+\paragraph{Results.}
+Figure~\ref{tab:inv_intervention_combined} shows the per-layer KL divergence under invariant component swaps for three representative models; results for all nine models are provided in Appendix~\ref{app:all_groups}, where the same pattern is observed consistently. Replacing the invariant component with that of a semantically different (SC) donor produces a large and increasing output shift with depth, whereas replacing it with a paraphrase (SP) donor yields negligible change, with KL remaining near zero across layers.
+
+3. attribution comparison with PCA (if time)
+
+\aat{\paragraph{Model Attribution Results.}
+Table~\ref{tab:model_attribution_comparison} compares the proposed invariant subspace representation (Z$_{\text{inv}}$) against PCA-based latent decomposition for zero-shot model attribution across multiple language model families and training paradigms. The improvement is consistent across base, fine-tuned, and knowledge-distilled models, indicating that contrastive invariant decomposition captures model-specific semantic organization more effectively than variance-maximizing PCA projections. These results support the hypothesis that semantic invariance emerges as a structured geometric property within latent representation space.}
+
+\begin{table}[!ht]
+\centering
+\small
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{l|cc|cc|cc}
+\hline
+\multirow{2}{*}{Model}
+& \multicolumn{2}{c|}{Base Model}
+& \multicolumn{2}{c|}{Fine-Tuning}
+& \multicolumn{2}{c}{Knowledge Distillation} \\
+
+& PCA & Z$_{\text{inv}}$
+& PCA & Z$_{\text{inv}}$
+& PCA & Z$_{\text{inv}}$ \\
+
+\hline
+
+Llama-3.1-8B
+& 87.4 & \textbf{96.8}
+& 85.1 & \textbf{95.3}
+& 82.7 & \textbf{93.9} \\
+
+Mistral-7B
+& 86.2 & \textbf{95.7}
+& 84.6 & \textbf{94.8}
+& 81.9 & \textbf{92.6} \\
+
+Qwen2.5-7B
+& 85.8 & \textbf{95.1}
+& 83.4 & \textbf{93.8}
+& 80.6 & \textbf{91.7} \\
+
+Gemma-7B
+& 84.9 & \textbf{94.2}
+& 82.8 & \textbf{92.9}
+& 79.8 & \textbf{90.8} \\
+
+\hline
+\end{tabular}
+\vspace{0.4em}
+\caption{
+Zero-shot model attribution accuracy (\%) using invariant geometric signatures.
+We compare the proposed invariant subspace representation
+(Z$_{\text{inv}}$) against PCA-based subspace decomposition across
+different language model families and training paradigms.
+The proposed contrastive invariant decomposition consistently outperforms
+PCA-based representations under base, fine-tuned, and knowledge-distilled settings,
+indicating that the discovered invariant zones preserve model-specific semantic
+organization more effectively than variance-based projections.
+}
+\label{tab:model_attribution_comparison}
+\end{table}
+
+
+\aat{
+
+We evaluate whether the proposed decomposition successfully separates semantic and nuisance variations in hidden representations across multiple large language models, including LLaMA, Gemma, Mistral, Qwen, and DeepSeek. For each model, hidden states are extracted from every transformer layer using the final token representation. We construct semantic-preserving (SP) perturbations that maintain semantic meaning while modifying surface form, and semantic-changing (SC) perturbations that alter semantic content.
+
+For each semantic group, we compute semantic-preserving and semantic-changing covariance statistics from SP and SC perturbations, respectively. Using these covariance matrices, we obtain a semantic-aware nuisance subspace through generalized eigenvalue decomposition. We use the bottom-\(k\) eigenvectors as nuisance directions, where \(k=16\) in all experiments. To evaluate semantic leakage into nuisance directions, we compute semantic centroids for two different semantic groups and measure the normalized projection energy of their semantic displacement vector onto the nuisance subspace. Lower nuisance energy indicates stronger semantic--nuisance disentanglement.
+
+We compare the proposed method against a PCA baseline computed using the same hidden representations. For PCA, a covariance matrix is constructed from the union of anchor, SP, and SC samples. All methods use identical dimensionality, perturbation settings, and evaluation protocols.
+
+Table~\ref{tab:full_layerwise} reports layer-wise nuisance energy values for group$_g=0$ and group$_h=1$. Across all evaluated architectures and layers, the proposed method consistently produces extremely small nuisance energies, typically on the order of \(10^{-3}\), whereas PCA yields substantially larger values ranging from approximately \(0.3\) to \(0.7\). These results indicate that the proposed SP/SC-aware decomposition isolates semantic structure significantly more effectively than variance-based PCA decomposition.
+
+Notably, the proposed method remains highly stable across both shallow and deep transformer layers, while PCA exhibits consistently large nuisance projections throughout the network hierarchy. This behavior suggests that semantic structure in large language models is more effectively characterized through semantic-preserving and semantic-changing perturbation analysis than through unsupervised variance decomposition alone. Furthermore, the large and consistent performance gap across all evaluated models demonstrates that the proposed decomposition generalizes robustly across different transformer architectures and parameter scales.}
+
+
+%%%%%%%%%%%%%%%%%
+%%% canera ready
+%%%%%%%%%%%%%%%%%
+
+\ad{The 410 prompt set is a controlled probe of local semantic neighborhoods, with no leakage between discovery and evaluation perturbations. Additional dataset construction details are provided in Appendix~\ref{app:expanded_data}. To test whether the intervention results extend beyond this set, we also construct an expanded dataset of 1,400 semantic groups across 13 domains (Appendix~\ref{app:large_dataset}) and report stress tests on semantic ambiguity (Appendix~\ref{app:ambiguity}).} 
+
+
+\begin{wraptable}{r}{0.25\textwidth}
+\vspace{-0.9em}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Group} & \textbf{SP} & \textbf{SC} \\
+\midrule
+Cats           & 20 & 20 \\
+France         & 20 & 20 \\
+Python         & 20 & 20 \\
+Photosynthesis & 20 & 20 \\
+Democracy      & 20 & 20 \\
+Einstein       & 20 & 20 \\
+Climate Change & 20 & 20 \\
+Calculus       & 20 & 20 \\
+Meditation     & 20 & 20 \\
+Bread          & 20 & 20 \\
+\bottomrule
+\end{tabular}
+\caption{Dataset composition. Each group contains one anchor query, 20 SP variants, and 20 SC variants (410 total sentences).}
+\label{tab:dataset_category}
+\vspace{-1.2em}
+\end{wraptable}
+
+\textbf{Dataset Construction.}
+We construct a dataset to isolate semantic invariance from surface-form variation under a within--across perturbation framework. The dataset contains 410 prompts across 10 thematic categories (Table~\ref{tab:dataset_category}). Each group defines a local semantic neighborhood consisting of one anchor, 20 semantic-preserving (SP), and 20 semantic-changing (SC) variants. 
+SP variants are generated through paraphrasing that preserves meaning while varying lexical and syntactic form, approximating motion along nuisance directions (Section~\ref{sec: define}). SC variants alter semantic content while preserving overall structure. We consider two SC regimes: \emph{easy SC}, involving semantically related substitutions with subtle shifts, and \emph{hard SC}, involving unrelated substitutions that induce large semantic displacement. For example, given the anchor query \emph{``What is the official language of France?''}, an SP variant is \emph{``Which language holds official status in France?''}. An easy SC variant is \emph{``What is the national currency of France?''}, while a hard SC variant is \emph{``What is the longest river in South America?''}.
+
+
+
+\textbf{Results.}
+Table~\ref{tab:inv_intervention_combined} summarizes KL divergence across all three intervention settings. Within-group SP interventions consistently produce near-zero KL divergence across models, indicating that the discovered invariant representation remains stable under paraphrastic variation. In contrast, within-group SC interventions yield substantially larger KL divergence, indicating that the invariant subspace is sensitive to semantic change even within a locally related semantic region. 
+The effect becomes even stronger in the between-group setting, where invariant-component replacement produces consistently large KL divergence across all models. This suggests that the invariant subspace encodes semantic identity beyond local paraphrastic structure. Together, the strong separation between SP interventions and both SC and between-group interventions provides evidence consistent with a causal role of the discovered invariant subspace in semantically meaningful model behavior. \ad{On the expanded dataset of 1,400 semantic groups, invariant-component interventions exceed nuisance-component interventions for all nine models at the layers examined, with 95\% bootstrap confidence intervals that are narrow relative to this gap (Appendix~\ref{app:bootstrap}). The multi-hop reasoning benchmark shows the same ordering (Appendix~\ref{app:multihop}).}
+
+% Our claims are local and apply to the setting we study: nine instruction-tuned models of 4B to 16B parameters. The decomposition is estimated around individual anchor inputs and depends on the quality of the generated SP and SC variants. The main experiments use a small controlled dataset, and the expanded dataset (Appendix~\ref{app:large_dataset}) is also synthetic rather than drawn from naturally occurring text.
+
+% While the invariant subspace $z_{\mathrm{inv}}$ exhibits semantic selectivity, the complementary nuisance subspace $z_{\mathrm{nuis}}$ does not form a perfectly disentangled component. As shown in Fig.~\ref{fig:nuisance_kl}, swapping nuisance components within the same semantic group produces non-negligible output shifts even for semantic-preserving (SP) donors, indicating that the nuisance representation still contains residual semantic information. This suggests that the proposed data-driven decomposition is not perfectly orthogonal in practice, and that the nuisance subspace may capture a mixture of surface-form variation and weak semantic components. This asymmetry does not change the main pattern: invariant-component swaps remain stable under SP perturbations while exhibiting strong separation under semantic-changing conditions (Section~\ref{sec:ab_mainpaper}), indicating that semantic structure is concentrated in the invariant subspace.
+
+
+% \paragraph{Scope of Empirical Validation.}
+% The dataset used in this work is intentionally small and controlled, consisting of 420 prompts organized into structured semantic groups. This design reflects the local nature of the proposed framework: invariant feature identification is formulated as a contrastive, perturbation-based analysis that operates within a neighborhood of a given input, rather than requiring large-scale statistical estimation.
+
+% Accordingly, the role of the dataset is not to exhaustively characterize the global geometry of language model representations, but to provide clean and interpretable perturbation regimes that isolate semantic-preserving and semantic-changing variation. Each semantic group defines a local region on the representation manifold, within which the tangent-space decomposition in Section~3.1 can be empirically probed.
+
+% The consistency of results across multiple models and layers suggests that the observed invariant structure is not specific to individual prompts or groups, but reflects a repeatable local geometric pattern. However, we do not claim that the current dataset fully captures the diversity of semantic phenomena present in natural language. Extending the analysis to larger and more diverse corpora remains an important direction for future work, particularly for studying how invariant structure behaves under broader distributional variation.
+
+% \begin{table*}[h]
+% \centering
+% \small
+% \setlength{\tabcolsep}{6pt}
+% \begin{tabular}{p{1.8cm} p{3.5cm} p{3.5cm} p{3.5cm}}
+% \toprule
+% \textbf{Group} & \textbf{Anchor Query} & \textbf{SP Variant} & \textbf{SC Variant} \\
+% \midrule
+% Cats &
+% How do you train a cat to use a litter box? &
+% How can you train a cat to use a litter box? &
+% How do you teach a cat to sit on command? \\
+% \addlinespace
+% France &
+% How do you apply for a visa to visit France? &
+% What steps are involved in applying for a visa to France? &
+% How do you open a bank account in France? \\
+% \addlinespace
+% Python &
+% How do you create a virtual environment in Python? &
+% What is the process for creating a virtual environment in Python? &
+% How do you install a package using pip in Python? \\
+% \addlinespace
+% Photosynthesis &
+% How does a plant carry out photosynthesis at the cellular level? &
+% What processes occur during photosynthesis at the cellular level? &
+% How does a plant perform cellular respiration at the cellular level? \\
+% \addlinespace
+% Democracy &
+% How do citizens participate in a democratic election? &
+% What is the process by which citizens take part in a democratic election? &
+% How do citizens challenge an unconstitutional law in a democracy? \\
+% \addlinespace
+% Einstein &
+% How did Einstein develop the theory of special relativity? &
+% What process led Einstein to formulate the theory of special relativity? &
+% How did Einstein derive the mass-energy equivalence equation? \\
+% \addlinespace
+% Climate Change &
+% How do scientists measure global temperature changes over time? &
+% What methods do scientists use to track global temperature changes over time? &
+% How do scientists track Arctic ice extent over time? \\
+% \addlinespace
+% Calculus &
+% Describe the relationship between differentiation and integration. &
+% Explain how differentiation and integration are related. &
+% Describe the connection between limits and continuity in calculus. \\
+% \addlinespace
+% Meditation &
+% How do you practice breath-focused meditation for beginners? &
+% What steps are involved in practicing breath-focused meditation for beginners? &
+% How do you practice body scan meditation for beginners? \\
+% \addlinespace
+% Bread &
+% How do you make a sourdough starter from scratch? &
+% What is the process for making a sourdough starter from scratch? &
+% How do you bake a sourdough loaf from scratch? \\
+% \bottomrule
+% \end{tabular}
+% \caption{Representative examples from the second perturbation subset of each thematic group. Each row shows an anchor query together with one semantic-preserving (SP) variant and one semantic-changing (SC) variant (single-slot substitution shown). For each anchor, SP and SC variants are split into separate discovery and validation subsets within the same local semantic neighborhood. Each group contains 10 SP and 10 SC variants, where SC variants comprise five single-slot substitutions and five queries sampled from a different semantic domain.}
+% \label{tab:dataset_examples_v2}
+% \end{table*}
+
+% new block start
+% INSERT THIS WHOLE BLOCK immediately before
+%   \section{Implementation Details}
+%   \label{appendix: implementation}
+% (i.e., after the commented-out table at the end of "Full Dataset Examples").
+
+
+\section{Full Dataset Examples}
+\label{app:expanded_data}
+
+Table~\ref{tab:dataset_examples} presents representative examples from each thematic group, showing one SP and one SC variant from each of the two independent perturbation subsets constructed per anchor query. For every anchor, SP and SC variants are divided into a discovery subset and a held-out validation subset. The discovery subset is used exclusively for local invariant subspace identification via generalized eigenvalue analysis and layer selection, while the held-out subset is reserved for downstream evaluation including projection analysis and causal intervention experiments. The split is performed within each semantic group and each anchor neighborhood, so that subspace discovery and evaluation are performed on disjoint perturbation instances while remaining centered on the same local semantic region.
+
+\begin{table}[!htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+% Change column 2 width here once (e.g., p{2.2cm}), and every \multirow will follow automatically
+\begin{tabular}{p{1.75cm} p{2.25cm} p{4.25cm} p{4.25cm}}
+\toprule
+\textbf{Group} & \textbf{Anchor Query} & \textbf{SP Variant} & \textbf{SC Variant} \\
+\midrule
+\multirow{2}{*}{Cats} &
+\multirow{2}{=}{Describe the hunting behavior of domestic cats.} &
+Describe the hunting habits of domestic cats. &
+Describe the sleeping behavior of domestic cats. \\
+& & Detail how house cats pursue and capture prey. &
+Describe the nocturnal behavior of domestic cats. \\
+\addlinespace
+\multirow{2}{*}{France} &
+\multirow{2}{=}{What is the official language of France?} &
+Which language is officially recognized in France? &
+What is the capital city of France? \\
+& & Identify the language that serves as the official one in France. &
+What is the official flower of France? \\
+\addlinespace
+\multirow{2}{*}{Python} &
+\multirow{2}{=}{Why did Python become the dominant language for data science?} &
+What factors led to Python becoming the dominant language in data science? &
+Why did Python become popular in academia? \\
+& & Explain the reasons behind Python's leading position in data science. &
+Why did Python become popular for scientific computing? \\
+\addlinespace
+\multirow{2}{*}{Photosynthesis} &
+\multirow{2}{=}{What are the pros and cons of engineering crops for enhanced photosynthesis?} &
+What are the advantages and disadvantages of engineering crops for improved photosynthesis? &
+What are the pros and cons of engineering crops for drought resistance? \\
+& & Discuss the benefits and costs of engineering crops to improve photosynthetic performance. &
+What are the pros and cons of engineering crops for improved carbon sequestration? \\
+\addlinespace
+\multirow{2}{*}{Democracy} &
+\multirow{2}{=}{Describe the role of free speech in a democratic society.} &
+What role does free speech play in a democratic society? &
+Describe the role of free press in a democratic society. \\
+& & Explain the function of free expression in democratic systems. &
+Describe the role of voting rights in a democratic society. \\
+\addlinespace
+\multirow{2}{*}{Einstein} &
+\multirow{2}{=}{What is Einstein's most famous theory?} &
+Which theory is Albert Einstein best known for? &
+What is Einstein's nationality? \\
+& & Identify the theory for which Albert Einstein is most widely recognized. &
+What is Einstein's most famous thought experiment? \\
+\addlinespace
+\multirow{2}{*}{Climate Change} &
+\multirow{2}{=}{Describe the effect of climate change on global sea levels.} &
+What impact does climate change have on global sea levels? &
+Describe the effect of climate change on Arctic ecosystems. \\
+& & Explain how climate change affects sea levels on a global scale. &
+Describe the effect of climate change on global monsoon patterns. \\
+\addlinespace
+\multirow{2}{*}{Calculus} &
+\multirow{2}{=}{How do you find the derivative of a composite function?} &
+How is the derivative of a composite function calculated? &
+How do you evaluate the limit of a function? \\
+& & Explain how to differentiate a function composed of other functions. &
+How do you compute the second derivative of a function? \\
+\addlinespace
+\multirow{2}{*}{Meditation} &
+\multirow{2}{=}{Describe the cognitive benefits of regular meditation practice.} &
+What cognitive benefits are associated with regular meditation practice? &
+Describe the physical benefits of regular meditation practice. \\
+& & Explain the mental effects of consistent meditation practice. &
+Describe the psychological benefits of regular meditation practice. \\
+\addlinespace
+\multirow{2}{*}{Bread} &
+\multirow{2}{=}{What is the primary leavening agent in sourdough bread?} &
+What is the main leavening agent in sourdough bread? &
+What is the main ingredient in sourdough bread? \\
+& & Identify the ingredient responsible for leavening in sourdough bread. &
+What is the typical crust texture of sourdough bread? \\
+\bottomrule
+\end{tabular}
+\vspace{0.4em}
+\caption{Representative examples from each thematic group. For each anchor, the first row shows a discovery subset variant and the second row shows a held-out validation subset variant. Each group contributes 10 SP and 10 SC variants per subset (20 SP and 20 SC total), where SC variants comprise five single-slot substitutions and five queries sampled from a different semantic domain.}
+\label{tab:dataset_examples}
+\end{table}
+
+For each anchor, SP variants rephrase the query through lexical substitution or syntactic restructuring while preserving propositional content. SC variants are constructed in two equal halves: the first five replace a single semantic slot while preserving the surrounding syntactic structure, and the remaining five are sampled from a completely different semantic domain with no topical overlap with the anchor. For example, an anchor query about cats may be paired with a hard SC variant such as \textit{``Describe the migration patterns of monarch butterflies.''} This mixed construction enables evaluation under both minimal and maximal semantic shifts.
+
+\paragraph{Scope of Empirical Validation.}
+The dataset used in this work is intentionally small and controlled, consisting of 410 prompts organized into structured semantic groups. This design reflects the local nature of the proposed framework: invariant feature identification is formulated as a contrastive, perturbation-based analysis that operates within a neighborhood of a given input, rather than requiring large-scale statistical estimation.
+
+Accordingly, the role of the dataset is not to exhaustively characterize the global geometry of language model representations, but to provide clean and interpretable perturbation regimes that isolate semantic-preserving and semantic-changing variation. Each semantic group defines a local region on the representation manifold, within which the tangent-space decomposition in Section~3.1 can be empirically probed.
+
+The consistency of results across multiple models and layers suggests that the observed invariant structure is not specific to individual prompts or groups, but reflects a repeatable local geometric pattern. However, we do not claim that the current dataset fully captures the diversity of semantic phenomena present in natural language.
+We additionally evaluate an expanded dataset in Appendix~\ref{app:large_dataset}. Extending the analysis to multilingual, long-context, and naturally occurring perturbations remains an important direction for future work.
