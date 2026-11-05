@@ -22,3 +22,7 @@ poster/
 # Large camera-ready bundles (keep local)
 LLMID_NeurIPS2026_Camera_Ready.pdf
 LLMID_NeurIPS2026_Camera_Ready.zip
+
+# Local project-page notes (never push)
+LLMID_project_page_spec.md
+
