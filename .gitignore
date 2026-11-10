@@ -6,6 +6,9 @@ invariance_outputs_nb/
 # Local-only paper / poster sources (never push)
 latex_src/
 poster/
+NeurIPS.pptx
+NeurIPS_poster.pptx
+_pptx_preview/
 
 # LaTeX build artifacts
 *.aux
