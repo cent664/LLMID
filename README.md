@@ -36,7 +36,7 @@ To isolate meaning-preserving (SP) vs meaning-changing (SC) variation, we constr
 **📊 Results Snapshot**
 ---
 Invariant-zone signatures identify the source model under base, fine-tuned, and distilled variants. The plot below shows Group 1 attribution accuracy (%) from the project page (Figure 7), with strong performance across model families.
-![attribution](docs/figures/attribution_v5.png)
+![attribution](docs/figures/attribution_v6.png)
 
 **📚 Citation**
 ---
