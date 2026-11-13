@@ -18,20 +18,20 @@ We give a local geometric characterization of semantic invariance in language mo
 
 **🧪 Synthetic Data Set**
 ---
-To isolate meaning-preserving (SP) vs meaning-changing (SC) variation, we construct a synthetic English dataset of short prompts organized into semantic groups. Each group starts from an anchor sentence; SP variants paraphrase the anchor, soft SC variants keep the same topic family but change the intended meaning, and hard SC variants move to a different topic or domain. Groups span multiple domains, with disjoint discovery and validation splits (1,400 groups · 13 domains · 57,400 sentences overall). The table below shows the per-group paraphrase budget around each anchor for ten example groups from the explorer.
+To isolate meaning-preserving (SP) vs meaning-changing (SC) variation, we construct a synthetic English dataset of short prompts organized into semantic groups. Each group starts from an anchor sentence; SP variants paraphrase the anchor, soft SC variants keep the same topic family but change the intended meaning, and hard SC variants move to a different topic or domain. Groups span multiple domains, with disjoint discovery and validation splits (1,400 groups · 13 domains · 57,400 sentences overall). The table below shows one sample of each type for ten example groups (counts per group in the column headers).
 
-| Group | SP | Soft SC | Hard SC |
-| --- | ---: | ---: | ---: |
-| 🐈 Cats | 20 | 10 | 10 |
-| 🇫🇷 France | 20 | 10 | 10 |
-| 🐍 Python | 20 | 10 | 10 |
-| 🌱 Photosynthesis | 20 | 10 | 10 |
-| 🗳️ Democracy | 20 | 10 | 10 |
-| 🧠 Einstein | 20 | 10 | 10 |
-| 🌡️ Climate Change | 20 | 10 | 10 |
-| ∫ Calculus | 20 | 10 | 10 |
-| 🧘 Meditation | 20 | 10 | 10 |
-| 🍞 Bread | 20 | 10 | 10 |
+| Group | SP (20) | Soft SC (10) | Hard SC (10) |
+| --- | --- | --- | --- |
+| 🐈 Cats | Describe the hunting habits of domestic cats. | Describe the sleeping behavior of domestic cats. | Describe the migration of monarch butterflies. |
+| 🇫🇷 France | Which language is officially recognized in France? | What is the capital city of France? | What is the longest river in South America? |
+| 🐍 Python | What factors led to Python becoming the dominant language in data science? | Why did Python become popular in academia? | What causes ocean tides on Earth? |
+| 🌱 Photosynthesis | What are the advantages and disadvantages of engineering crops for improved photosynthesis? | What are the pros and cons of engineering crops for drought resistance? | How does a transistor amplify an electrical signal? |
+| 🗳️ Democracy | What role does free speech play in a democratic society? | Describe the role of free press in a democratic society. | How do black holes form from collapsing stars? |
+| 🧠 Einstein | Which theory is Albert Einstein best known for? | What is Einstein's nationality? | What is the chemical formula for table salt? |
+| 🌡️ Climate Change | What impact does climate change have on global sea levels? | Describe the effect of climate change on Arctic ecosystems. | How does the digestive system break down proteins? |
+| ∫ Calculus | How is the derivative of a composite function calculated? | How do you evaluate the limit of a function? | What languages were spoken in the Roman Empire? |
+| 🧘 Meditation | What cognitive benefits are associated with regular meditation practice? | Describe the physical benefits of regular meditation practice. | How do jet engines produce thrust? |
+| 🍞 Bread | What is the main leavening agent in sourdough bread? | What is the main ingredient in sourdough bread? | What is the boiling point of water at sea level? |
 
 **📊 Results Snapshot**
 ---
